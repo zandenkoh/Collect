@@ -236,11 +236,12 @@ function getRandomSafeSpot() {
     const allCoinsRef = firebase.database().ref(`coins`);
 
     allPlayersRef.on("value", (snapshot) => {
-      //Fires whenever a change occurs
+      // Fires whenever a change occurs
       players = snapshot.val() || {};
-      Object.keys(players).forEach((key) => {
-        const characterState = players[key];
-        let el = playerElements[key];
+      const onlinePlayers = Object.values(players).filter(player => player.isOnline);
+      onlinePlayers.forEach((player) => {
+        const characterState = player;
+        let el = playerElements[player.id];
         // Now update the DOM
         el.querySelector(".Character_name").innerText = characterState.name;
         el.querySelector(".Character_coins").innerText = characterState.coins;
@@ -249,8 +250,21 @@ function getRandomSafeSpot() {
         const left = 16 * characterState.x + "px";
         const top = 16 * characterState.y - 4 + "px";
         el.style.transform = `translate3d(${left}, ${top}, 0)`;
-      })
-    })
+    
+        // Apply different background only to the user's character
+        if (player.id === playerId) {
+          el.querySelector(".Character_name-container").classList.add("user-character");
+        } else {
+          el.querySelector(".Character_name-container").classList.remove("user-character");
+        }
+    
+        if (!characterState.isOnline) {
+          el.style.display = 'none';
+        } else {
+          el.style.display = 'block'; // Or whatever the default display value should be
+        }
+      });
+    });    
     allPlayersRef.on("child_added", (snapshot) => {
       //Fires whenever a new node is added the tree
       const addedPlayer = snapshot.val();
@@ -360,6 +374,8 @@ function getRandomSafeSpot() {
           // Player data exists, update local variables
           playerNameInput.value = playerData.name;
           // Add more data to update as needed
+          // Update online status to true
+          playerRef.update({ isOnline: true });
         } else {
           // Player data doesn't exist, initialize with default values
           const name = createName();
@@ -379,8 +395,10 @@ function getRandomSafeSpot() {
         }
       });
   
-      // Update online status on disconnect
-      playerRef.onDisconnect().update({ isOnline: false });
+      // Update online status on disconnect and connect
+      playerRef.onDisconnect().update({ isOnline: false }).then(() => {
+        playerRef.update({ isOnline: true });
+      });
   
       // Begin the game now that we are signed in
       initGame();
@@ -394,6 +412,23 @@ function getRandomSafeSpot() {
       }
     }
   });
+    
+  firebase.database().ref('players').on('child_changed', (snapshot) => {
+    const playerId = snapshot.key;
+    const playerData = snapshot.val();
+    console.log(`Player ${playerId} online status changed to ${playerData.isOnline}`);
+    const characterElement = playerElements[playerId];
+    if (!playerData.isOnline && characterElement) {
+      // Player went offline, hide their character
+      characterElement.classList.add('offline');
+    } else if (playerData.isOnline && characterElement) {
+      // Player came back online, show their character
+      characterElement.classList.remove('offline');
+    }
+  });
+  
+  
+  
   
   
   
