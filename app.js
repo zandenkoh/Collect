@@ -385,9 +385,17 @@ function getRandomSafeSpot() {
       // Begin the game now that we are signed in
       initGame();
     } else {
-      // Handle case when user is logged out
+      // Player is logged out
+      // Remove the player's DOM element
+      const existingPlayerElement = playerElements[playerId];
+      if (existingPlayerElement) {
+        gameContainer.removeChild(existingPlayerElement);
+        delete playerElements[playerId];
+      }
     }
   });
+  
+  
   
 
   firebase.auth().signInAnonymously().catch((error) => {
