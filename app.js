@@ -2,7 +2,7 @@
 document.addEventListener('contextmenu', function(event) {
   // Prevent the default context menu behavior
   event.preventDefault();
-});
+})
 
 
 const mapData = {
