@@ -128,7 +128,7 @@ button:active {
 
 .Character_name-container {
   display: block;
-  margin-top: -25px;
+  margin-top: -18px;
   text-align: center;
   align-items: center;
   font-size: 5px;
@@ -165,4 +165,13 @@ button:active {
 }
 .Coin_shadow {
   background: url(./images/coin-shadow.png) no-repeat no-repeat;
+}
+
+.offline {
+  display: none !important;
+}
+
+.user-character {
+  background: #333333;
+  margin-top: -24px;
 }
