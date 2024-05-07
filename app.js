@@ -176,8 +176,8 @@ function getRandomSafeSpot() {
 
   // Function to handle visibility change
   function handleVisibilityChange() {
-    if (document.hidden || iframe.contentWindow.document.visibilityState !== 'visible') {
-      // Set the player's isOnline status to false when the tab is not visible or iframe isn't loaded
+    if (document.hidden) {
+      // Set the player's isOnline status to false when the tab is not visible
       playerRef.update({ isOnline: false });
     } else {
       // Set the player's isOnline status to true when the tab is visible again
@@ -185,13 +185,7 @@ function getRandomSafeSpot() {
     }
   }
 
-  // Event listener for visibility change
   document.addEventListener("visibilitychange", handleVisibilityChange);
-
-  // Event listener for iframe load
-  iframe.addEventListener("load", () => {
-    handleVisibilityChange();
-  });
 
   function placeCoin() {
     const { x, y } = getRandomSafeSpot();
