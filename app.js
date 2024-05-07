@@ -174,18 +174,24 @@ function getRandomSafeSpot() {
   const playerNameInput = document.querySelector("#player-name");
   const playerColorButton = document.querySelector("#player-color");
 
-    // Function to handle visibility change
-    function handleVisibilityChange() {
-      if (document.hidden) {
-        // Set the player's isOnline status to false when the tab is not visible
-        playerRef.update({ isOnline: false });
-      } else {
-        // Set the player's isOnline status to true when the tab is visible again
-        playerRef.update({ isOnline: true });
-      }
+  // Function to handle visibility change
+  function handleVisibilityChange() {
+    if (document.hidden || iframe.contentWindow.document.visibilityState !== 'visible') {
+      // Set the player's isOnline status to false when the tab is not visible or iframe isn't loaded
+      playerRef.update({ isOnline: false });
+    } else {
+      // Set the player's isOnline status to true when the tab is visible again
+      playerRef.update({ isOnline: true });
     }
-  
-    document.addEventListener("visibilitychange", handleVisibilityChange);
+  }
+
+  // Event listener for visibility change
+  document.addEventListener("visibilitychange", handleVisibilityChange);
+
+  // Event listener for iframe load
+  iframe.addEventListener("load", () => {
+    handleVisibilityChange();
+  });
 
   function placeCoin() {
     const { x, y } = getRandomSafeSpot();
