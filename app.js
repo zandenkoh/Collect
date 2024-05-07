@@ -2,7 +2,7 @@
 document.addEventListener('contextmenu', function(event) {
   // Prevent the default context menu behavior
   event.preventDefault();
-})
+});
 
 
 const mapData = {
@@ -174,6 +174,18 @@ function getRandomSafeSpot() {
   const playerNameInput = document.querySelector("#player-name");
   const playerColorButton = document.querySelector("#player-color");
 
+    // Function to handle visibility change
+    function handleVisibilityChange() {
+      if (document.hidden) {
+        // Set the player's isOnline status to false when the tab is not visible
+        playerRef.update({ isOnline: false });
+      } else {
+        // Set the player's isOnline status to true when the tab is visible again
+        playerRef.update({ isOnline: true });
+      }
+    }
+  
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
   function placeCoin() {
     const { x, y } = getRandomSafeSpot();
