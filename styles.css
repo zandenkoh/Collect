@@ -139,12 +139,10 @@ button:active {
   font-weight: bold;
   text-transform: uppercase;
   user-select: none;
-  scale: 1;
   white-space: nowrap;
   justify-content: center;
   position: relative;
   width: fit-content;
-  margin-left: -150%;
 }
 .Character:hover .Character_name-container{
   background: #333333;
