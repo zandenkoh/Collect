@@ -248,35 +248,65 @@ function getRandomSafeSpot() {
     const allCoinsRef = firebase.database().ref(`coins`);
 
     allPlayersRef.on("value", (snapshot) => {
-      // Fires whenever a change occurs
-      players = snapshot.val() || {};
-      const onlinePlayers = Object.values(players).filter(player => player.isOnline);
-      onlinePlayers.forEach((player) => {
-        const characterState = player;
-        let el = playerElements[player.id];
-        // Now update the DOM
-        el.querySelector(".Character_name").innerText = characterState.name;
-        el.querySelector(".Character_coins").innerText = characterState.coins;
-        el.setAttribute("data-color", characterState.color);
-        el.setAttribute("data-direction", characterState.direction);
-        const left = 16 * characterState.x + "px";
-        const top = 16 * characterState.y - 4 + "px";
-        el.style.transform = `translate3d(${left}, ${top}, 0)`;
-    
-        // Apply different background only to the user's character
-        if (player.id === playerId) {
-          el.querySelector(".Character_name-container").classList.add("user-character");
-        } else {
-          el.querySelector(".Character_name-container").classList.remove("user-character");
-        }
-    
-        if (!characterState.isOnline) {
-          el.style.display = 'none';
-        } else {
-          el.style.display = 'block'; // Or whatever the default display value should be
-        }
-      });
-    });    
+  // Fires whenever a change occurs
+  players = snapshot.val() || {};
+  const onlinePlayers = Object.values(players).filter(player => player.isOnline);
+
+  // First, clear the gameContainer of any offline players
+  for (let id in playerElements) {
+    if (!onlinePlayers.find(player => player.id === id)) {
+      gameContainer.removeChild(playerElements[id]);
+      delete playerElements[id];
+    }
+  }
+
+  // Then, update or add the remaining online players
+  onlinePlayers.forEach((player) => {
+    const characterState = player;
+    let el = playerElements[player.id];
+
+    if (!el) {
+      // Create a new character element if it doesn't exist
+      el = document.createElement("div");
+      el.classList.add("Character", "grid-cell");
+      if (player.id === playerId) {
+        el.classList.add("you");
+      }
+      el.innerHTML = `
+        <div class="Character_shadow grid-cell"></div>
+        <div class="Character_sprite grid-cell"></div>
+        <div class="Character_name-container">
+          <span class="Character_name"></span>
+          <span class="Character_coins">0</span>
+        </div>
+        <div class="Character_you-arrow"></div>
+      `;
+      playerElements[player.id] = el;
+      gameContainer.appendChild(el);
+    }
+
+    // Update the character's DOM element with their current state
+    el.querySelector(".Character_name").innerText = characterState.name;
+    el.querySelector(".Character_coins").innerText = characterState.coins;
+    el.setAttribute("data-color", characterState.color);
+    el.setAttribute("data-direction", characterState.direction);
+    const left = 16 * characterState.x + "px";
+    const top = 16 * characterState.y - 4 + "px";
+    el.style.transform = `translate3d(${left}, ${top}, 0)`;
+
+    // Highlight the current user's character
+    if (player.id === playerId) {
+      el.querySelector(".Character_name-container").classList.add("user-character");
+    } else {
+      el.querySelector(".Character_name-container").classList.remove("user-character");
+    }
+
+    // Only display characters that are online
+    el.style.display = player.isOnline ? 'block' : 'none';
+  });
+});
+
+
     allPlayersRef.on("child_added", (snapshot) => {
       //Fires whenever a new node is added the tree
       const addedPlayer = snapshot.val();
@@ -349,16 +379,12 @@ function getRandomSafeSpot() {
       gameContainer.removeChild( coinElements[keyToRemove] );
       delete coinElements[keyToRemove];
     })
+    
+    const storedName = createName();
+    playerRef.update({
+      name: storedName
+    });
 
-
-    //Updates player name with text input
-    playerNameInput.addEventListener("change", (e) => {
-      const newName = e.target.value || createName();
-      playerNameInput.value = newName;
-      playerRef.update({
-        name: newName
-      })
-    })
 
     //Update player color on button click
     playerColorButton.addEventListener("click", () => {
