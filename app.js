@@ -405,33 +405,35 @@ function getRandomSafeSpot() {
       playerId = user.uid;
       playerRef = firebase.database().ref(`players/${playerId}`);
   
-      // Retrieve player data if exists
       playerRef.once('value', (snapshot) => {
         const playerData = snapshot.val();
-        if (playerData) {
-          // Player data exists, update local variables
-          playerNameInput.value = playerData.name;
-          // Add more data to update as needed
-          // Update online status to true
-          playerRef.update({ isOnline: true });
-        } else {
-          // Player data doesn't exist, initialize with default values
-          const name = createName();
-          playerNameInput.value = name;
-  
-          // Initialize player data
-          playerRef.set({
+
+          // Define default player data
+          const defaultPlayerData = {
             id: playerId,
-            name,
+            name: createName(),
             direction: "right",
             color: randomFromArray(playerColors),
             x: getRandomSafeSpot().x,
             y: getRandomSafeSpot().y,
             coins: 0,
-            isOnline: true, // Add online status flag
-          });
-        }
-      });
+            isOnline: true,
+          };
+
+  if (playerData) {
+    // Ensure missing fields are filled in
+    playerRef.update({
+      ...defaultPlayerData,
+      ...playerData,
+    });
+    playerNameInput.value = playerData.name;
+  } else {
+    // Player data doesn't exist, initialize with default values
+    playerNameInput.value = defaultPlayerData.name;
+    playerRef.set(defaultPlayerData);
+  }
+});
+
   
       // Update online status on disconnect and connect
       playerRef.onDisconnect().update({ isOnline: false }).then(() => {
@@ -464,12 +466,7 @@ function getRandomSafeSpot() {
       characterElement.classList.remove('offline');
     }
   });
-  
-  
-  
-  
-  
-  
+
 
   firebase.auth().signInAnonymously().catch((error) => {
     var errorCode = error.code;
